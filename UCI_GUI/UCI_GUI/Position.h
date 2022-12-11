@@ -15,6 +15,7 @@ public:
 	bool BlackLongCastle;
 	unsigned int MoveCounter;
 	unsigned int FiftyMovesRuleCounter;
+	std::vector<Move> CurrMoves;
 
 public:
 	// Конструктор по умолчанию

@@ -1,12 +1,13 @@
 #include "Game.h"
 
-Game::Game()
+Game::Game(HWND window)
 {
+	this->window = window;
 	res = new Resources();
 	pos = new Position();
 	board = new Board();
 	moveGen = new MoveGen();
-	//ipc = new IPC();*/
+	ipc = new IPC();
 	
 }
 
@@ -25,8 +26,9 @@ int Game::GetCellIndex(int mouse_x, int mouse_y)
 
 void Game::Init()
 {
-	pos->InitPosition("rnbqk2r/ppp1ppbp/3p1np1/8/2PPP3/2N2P2/PP4PP/R1BQKBNR b KQkq - 0 5");
+	pos->InitPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	board->InitBoard(*pos);
+	string response = ipc->ReceiveResponse();
 	state = GameStates::PLAYER_MOVE; 
 	isFigureChoosen = false;
 }
@@ -80,9 +82,30 @@ void Game::Update(int mouse_x, int mouse_y)
 			if (isFigureChoosen)
 			{
 				// ≈сли после выбора фигуры нажали на один из ее ходов
-				if ((Bitboard(1) << index) & board->GetAttacks())
+				if ((Bitboard(1) << (63 - index)) & board->GetAttacks())
 				{
-
+					for (auto& move : pos->CurrMoves)
+					{
+						if (move.To == 63-index)
+						{
+							pos->MakeMove(move);
+							board->UpdateBoard(*pos);
+							board->SetAttacks(Bitboard(0));
+							pos->CurrMoves.clear();
+							isFigureChoosen = false;
+							if (isWin())
+							{
+								state = GameStates::END;
+								return;
+							}
+							else
+							{
+								state = GameStates::COMPUTER_MOVE;
+								return;
+							}
+							return;
+						}
+					}
 				}
 				// ≈сли выбрали другую фигуру
 				else
@@ -102,6 +125,7 @@ void Game::Update(int mouse_x, int mouse_y)
 							}
 						}
 						board->SetAttacks(bbCurrMoves);
+						pos->CurrMoves = CurrMoves;
 					}
 					else return;
 				}
@@ -124,28 +148,77 @@ void Game::Update(int mouse_x, int mouse_y)
 						}
 					}
 					board->SetAttacks(bbCurrMoves);
+					pos->CurrMoves = CurrMoves;
 				}
 			}
 			break;
 		}
 		case GameStates::COMPUTER_MOVE:
 		{
-			
+			string FEN = GetPositionFen();
+			ipc->SendRequest("position fen " + FEN + '\n');
+			Sleep(100);
+			ipc->SendRequest("go\n");
+			Sleep(3000);
+			string searchinfo = ipc->ReceiveResponse();
+			Sleep(100);
+			ipc->SendRequest("stop\n");
+			Sleep(100);
+			string bestmove = ipc->ReceiveResponse();	
+			int index = bestmove.find("bestmove");
+			bestmove = bestmove.substr(index + 9, 4);
+			std::vector<Move> moves = moveGen->GetAllMoves(*pos, pos->ActiveColor);
+			std::vector<string> MoveStrings;
+			for (int i = 0; i < moves.size(); i++)
+				MoveStrings.push_back(moves[i].ToString());
+			for (auto& move : moves)
+			{
+				if (move.ToString()._Equal(bestmove))
+				{
+					pos->MakeMove(move);
+					board->UpdateBoard(*pos);
+					board->SetAttacks(Bitboard(0));
+					pos->CurrMoves.clear();
+					if (isWin())
+					{
+						state = GameStates::END;
+						return;
+					}
+					else
+					{
+						state = GameStates::PLAYER_MOVE;
+						return;
+					}
+					return;
+				}
+			}
+
 			break;
 		}
 		case GameStates::END:
 		{
-
+			if (pos->ActiveColor == WHITE)
+				MessageBox(window, L"Black won", L"Game over", MB_OK);
+			else
+				MessageBox(window, L"White won ", L"Game over", MB_OK);
+			KillTimer(window, 1);
 			break;
 		}
 	}
 }
 
+bool Game::isWin()
+{
+	if (moveGen->GetAllMoves(*pos, pos->ActiveColor).size() == 0
+		&& moveGen->IsKingUnderAttack(*pos, pos->ActiveColor))
+		return true;
+	return false;
+}
 
 Game::~Game()
 {
 	delete board;
-	// delete ipc;
+	delete ipc;
 	delete moveGen;
 	delete pos;
 }

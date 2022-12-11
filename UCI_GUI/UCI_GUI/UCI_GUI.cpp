@@ -151,10 +151,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
     {
         // Инициализируем игру и выставляем начальную позицию
-        game = new Game();
+        game = new Game(hWnd);
         game->Init();  
         string fen = game->GetPositionFen();
-        SetTimer(hWnd,1 , 25, NULL);
+        SetTimer(hWnd, 1, 25, NULL);
         break;
     }
     case WM_TIMER:
@@ -222,6 +222,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_DESTROY:
     {
+        game->~Game();
         PostQuitMessage(0);
         break;
     }

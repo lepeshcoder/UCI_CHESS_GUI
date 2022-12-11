@@ -22,10 +22,12 @@ public:
 	bool isFigureChoosen;
 	// состояние игры
 	GameStates state;
+	// дескриптор окна для msgbox;
+	HWND window;
 
 public:
 
-	Game(); 
+	Game(HWND window); 
 
 	int GetCellIndex(int mouse_x, int mouse_y);
 
@@ -36,6 +38,8 @@ public:
 	string GetPositionFen();
 
 	void Update(int mouse_x,int mouse_y);
+
+	bool isWin();
 
 	~Game();
 };

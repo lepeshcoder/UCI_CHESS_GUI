@@ -26,6 +26,7 @@ Position::Position(const Position& other)
 	}
 	WhiteLongCastle = other.WhiteLongCastle;
 	WhiteShortCastle = other.WhiteShortCastle;
+	CurrMoves = other.CurrMoves;
 }
 
 

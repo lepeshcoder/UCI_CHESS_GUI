@@ -15,11 +15,11 @@ Move::Move(int from, int to, int piecetype, int movetype, int opPieceType)
 
 string Move::ToString()
 {
-	string Files = "ABCDEFGH";
+	string Files = "abcdefgh";
 	string move = "";
-	move += Files[From % 8];
-	move += '8' - (char)(From / 8);
-	move += Files[To % 8];
-	move += '8' - char(To / 8);
+	move += Files[7 - (From % 8)];
+	move += '1' + (char)(From / 8);
+	move += Files[7 - (To % 8)];
+	move += '1' + (char)(To / 8);
 	return move;
 }
