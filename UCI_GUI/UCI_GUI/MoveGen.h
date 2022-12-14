@@ -79,6 +79,7 @@ private:
 	Bitboard RookMasks[64];
 	Bitboard BishopMasks[64];
 	Bitboard QueenMasks[64];
+	
 
 public:
 

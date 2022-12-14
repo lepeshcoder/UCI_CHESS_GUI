@@ -24,10 +24,16 @@ public:
 	GameStates state;
 	// дескриптор окна для msgbox;
 	HWND window;
+	// 
+	HWND* win;
+	// debug File
+	std::fstream kal;
+	// Флаг MessageBox
+	bool IsMessage;
 
 public:
 
-	Game(HWND window); 
+	Game(HWND window,HWND* win); 
 
 	int GetCellIndex(int mouse_x, int mouse_y);
 

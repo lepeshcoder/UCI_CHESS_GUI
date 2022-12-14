@@ -21,8 +21,8 @@ IPC::IPC()
     si.hStdInput = parent_out;
 
     //Создаём дочерний процесс
-    WCHAR ModuleName[] = L"C:\\Users\\user\\Desktop\\Курсач\\stockfish\\stockfish.exe";
-    BOOL bsucces = CreateProcess(ModuleName, NULL, NULL, NULL, TRUE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);  
+    WCHAR ModuleName[] = L"C:\\Users\\user\\desktop\\Курсач\\stockfish\\stockfish.exe";
+    BOOL bsucces = CreateProcess(ModuleName, NULL, NULL, NULL, TRUE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
 
 }
 

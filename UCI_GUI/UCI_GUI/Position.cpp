@@ -51,12 +51,17 @@ void Position::MakeMove(Move move)
 		{
 			AllWhitePeaces &= ~(Bitboard(1) << move.From);
 			AllWhitePeaces |= (Bitboard(1) << move.To);
+			if (move.PieceType == KING)
+				WhiteLongCastle = WhiteShortCastle = false;
 		}
 		else
 		{		
 			AllBlackPeaces &= ~(Bitboard(1) << move.From);
 			AllBlackPeaces |= (Bitboard(1) << move.To);
+			if (move.PieceType == KING)
+				BlackLongCastle = BlackShortCastle = false;
 		}
+		
 		break;
 	case  CAPTURE:
 		Pieces[ActiveColor][move.PieceType] &= ~(Bitboard(1) << move.From); // убираем фигуру с места где она стояла
@@ -67,6 +72,8 @@ void Position::MakeMove(Move move)
 			AllWhitePeaces |= (Bitboard(1) << move.To);
 			AllBlackPeaces &= ~(Bitboard(1) << move.To);
 			Pieces[BLACK][move.OpPieceType] &= ~(Bitboard(1) << move.To);
+			if (move.PieceType == KING)
+				WhiteLongCastle = WhiteShortCastle = false;
 		}
 		else
 		{
@@ -74,6 +81,8 @@ void Position::MakeMove(Move move)
 			AllBlackPeaces |= (Bitboard(1) << move.To);
 			AllWhitePeaces &= ~(Bitboard(1) << move.To);
 			Pieces[WHITE][move.OpPieceType] &= ~(Bitboard(1) << move.To);
+			if (move.PieceType == KING)
+				BlackLongCastle = BlackShortCastle = false;
 		}
 		break;
 	case FIRST_PAWN_MOVE:
@@ -114,6 +123,7 @@ void Position::MakeMove(Move move)
 		if (ActiveColor == WHITE)
 		{		
 			WhiteLongCastle = false;
+			WhiteShortCastle = false;
 			Pieces[WHITE][KING] = 0X20;
 			Pieces[WHITE][ROOK] &= ~(0X80);
 			Pieces[WHITE][ROOK] |= 0X10;
@@ -123,6 +133,7 @@ void Position::MakeMove(Move move)
 		else
 		{
 			BlackLongCastle = false;
+			BlackShortCastle = false;
 			Pieces[BLACK][KING] = Bitboard(1) << 61;
 			Pieces[BLACK][ROOK] &= ~(Bitboard(1) << 63);
 			Pieces[BLACK][ROOK] |= (Bitboard(1) << 60);
@@ -133,6 +144,7 @@ void Position::MakeMove(Move move)
 	case SHORT_CASTLE:
 		if (ActiveColor == WHITE)
 		{
+			WhiteLongCastle = false;
 			WhiteShortCastle = false;
 			Pieces[WHITE][KING] = 0X2;
 			Pieces[WHITE][ROOK] &= ~0X1;
@@ -142,6 +154,7 @@ void Position::MakeMove(Move move)
 		}
 		else
 		{
+			BlackLongCastle = false;
 			BlackShortCastle = false;
 			Pieces[BLACK][KING] = 0X0200000000000000;
 			Pieces[BLACK][ROOK] &= ~(0X0100000000000000);
@@ -280,6 +293,7 @@ string Position::GetPositionFEN()
 	if (WhiteLongCastle) FEN += 'Q';
 	if (BlackShortCastle) FEN += 'k';
 	if (BlackLongCastle) FEN += 'q';
+	if (!WhiteShortCastle && !WhiteLongCastle && !BlackShortCastle && !BlackLongCastle) FEN += '-';
 	FEN += ' ';
 	if (MagicCaptureField)
 	{
@@ -295,7 +309,7 @@ string Position::GetPositionFEN()
 	std::stringstream a;
 	a << FiftyMovesRuleCounter;
 	string k; a >> k;
-	FEN += k + ' ';
+	FEN += '0' + ' ';
 	std::stringstream b;
 	b << MoveCounter;
 	string l; b >> l;

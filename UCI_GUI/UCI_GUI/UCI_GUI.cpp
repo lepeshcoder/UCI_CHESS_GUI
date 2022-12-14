@@ -9,9 +9,7 @@
 
 
 // TODO:
-// 1) Валидность генерируемых ходов (Для этого написать MakeMove and UnMakeMove)
-// 2) Конец игры
-// 3) IPC
+
 
 
 
@@ -151,7 +149,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
     {
         // Инициализируем игру и выставляем начальную позицию
-        game = new Game(hWnd);
+        game = new Game(hWnd,&hWnd);
         game->Init();  
         string fen = game->GetPositionFen();
         SetTimer(hWnd, 1, 25, NULL);
@@ -159,13 +157,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     case WM_TIMER:
     {
-        game->Update(mouse_x, mouse_y);
+        game->Update(mouse_x, mouse_y); 
+       
         mouse_x = mouse_y = 0;
        
         PAINTSTRUCT ps;
         HDC hdcWin = GetDC(hWnd), hdc;
 
-
+         
         HBITMAP hBitmap;
         hdc = CreateCompatibleDC(hdcWin);
         hBitmap = CreateCompatibleBitmap(hdcWin, 800, 800);

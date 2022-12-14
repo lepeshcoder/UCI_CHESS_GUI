@@ -23,6 +23,7 @@
 #include <immintrin.h>
 #include <algorithm>
 #include <sstream>
+#include <fstream>
 #pragma comment (lib,"Gdiplus.lib")
 
 typedef unsigned long long Bitboard;

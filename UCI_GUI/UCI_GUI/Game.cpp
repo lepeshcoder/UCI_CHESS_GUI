@@ -1,6 +1,6 @@
 #include "Game.h"
 
-Game::Game(HWND window)
+Game::Game(HWND window,HWND* win)
 {
 	this->window = window;
 	res = new Resources();
@@ -8,7 +8,11 @@ Game::Game(HWND window)
 	board = new Board();
 	moveGen = new MoveGen();
 	ipc = new IPC();
-	
+	this->win = win;
+
+	kal.open("C:\\Users\\user\\Desktop\\debug.txt");
+	kal << "NEW_GAME\n";
+	kal.close();
 }
 
 int Game::GetCellIndex(int mouse_x, int mouse_y)
@@ -29,7 +33,8 @@ void Game::Init()
 	pos->InitPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	board->InitBoard(*pos);
 	string response = ipc->ReceiveResponse();
-	state = GameStates::PLAYER_MOVE; 
+	state = GameStates::PLAYER_MOVE;
+	IsMessage = true;
 	isFigureChoosen = false;
 }
 
@@ -82,7 +87,7 @@ void Game::Update(int mouse_x, int mouse_y)
 			if (isFigureChoosen)
 			{
 				// ≈сли после выбора фигуры нажали на один из ее ходов
-				if ((Bitboard(1) << (63 - index)) & board->GetAttacks())
+				if ((Bitboard(1) << (63 - index)) & board->GetAttacks()) 
 				{
 					for (auto& move : pos->CurrMoves)
 					{
@@ -96,6 +101,11 @@ void Game::Update(int mouse_x, int mouse_y)
 							if (isWin())
 							{
 								state = GameStates::END;
+								if (pos->ActiveColor == WHITE)
+									MessageBox(window, L"Black won", L"Game over", MB_OK);
+								else
+									MessageBox(window, L"White won ", L"Game over", MB_OK);
+
 								return;
 							}
 							else
@@ -156,12 +166,18 @@ void Game::Update(int mouse_x, int mouse_y)
 		case GameStates::COMPUTER_MOVE:
 		{
 			string FEN = GetPositionFen();
+			string temp = FEN + '\n';
+			
+			kal.open("C:\\Users\\user\\Desktop\\debug.txt",std::ios::app);
+			kal << temp;
+			kal.close();
+
 			ipc->SendRequest("position fen " + FEN + '\n');
 			Sleep(100);
 			ipc->SendRequest("go\n");
-			Sleep(3000);
+			Sleep(500);
 			string searchinfo = ipc->ReceiveResponse();
-			Sleep(100);
+			Sleep(1);
 			ipc->SendRequest("stop\n");
 			Sleep(100);
 			string bestmove = ipc->ReceiveResponse();	
@@ -182,6 +198,10 @@ void Game::Update(int mouse_x, int mouse_y)
 					if (isWin())
 					{
 						state = GameStates::END;
+						if (pos->ActiveColor == WHITE)
+							MessageBox(window, L"Black won", L"Game over", MB_OK);
+						else
+							MessageBox(window, L"White won ", L"Game over", MB_OK);
 						return;
 					}
 					else
@@ -193,15 +213,6 @@ void Game::Update(int mouse_x, int mouse_y)
 				}
 			}
 
-			break;
-		}
-		case GameStates::END:
-		{
-			if (pos->ActiveColor == WHITE)
-				MessageBox(window, L"Black won", L"Game over", MB_OK);
-			else
-				MessageBox(window, L"White won ", L"Game over", MB_OK);
-			KillTimer(window, 1);
 			break;
 		}
 	}
